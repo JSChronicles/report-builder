@@ -23,7 +23,8 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       PR_URL: ${{ github.event.pull_request.html_url }}
       UPDATE_TYPES_JSON: '["semver-patch","semver-minor"]'
-      EXCLUDED_PREFIXES_JSON: '[]'
+      INCLUDED_PREFIXES_JSON: '[]'
+      EXCLUDED_PREFIXES_JSON: '["ibn"]'
 
     steps:
       - name: Fetch Dependabot metadata
@@ -46,12 +47,18 @@ jobs:
               .map((name) => name.trim())
               .filter(Boolean);
             const updateTypes = new Set(JSON.parse(process.env.UPDATE_TYPES_JSON));
+            const includedPrefixes = JSON.parse(process.env.INCLUDED_PREFIXES_JSON);
             const excludedPrefixes = JSON.parse(process.env.EXCLUDED_PREFIXES_JSON);
+            const included =
+              includedPrefixes.length === 0 ||
+              dependencyNames.some((name) =>
+                includedPrefixes.some((prefix) => name.startsWith(prefix))
+              );
             const excluded = dependencyNames.some((name) =>
               excludedPrefixes.some((prefix) => name.startsWith(prefix))
             );
 
-            core.setOutput("eligible", updateTypes.has(updateType) && !excluded);
+            core.setOutput("eligible", updateTypes.has(updateType) && included && !excluded);
 
       - name: Approve pull request
         if: ${{ steps.eligibility.outputs.eligible == 'true' }}
