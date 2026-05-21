@@ -51,7 +51,7 @@ jobs:
             const excludedPrefixes = JSON.parse(process.env.EXCLUDED_PREFIXES_JSON);
             const included =
               includedPrefixes.length === 0 ||
-              dependencyNames.some((name) =>
+              dependencyNames.every((name) =>
                 includedPrefixes.some((prefix) => name.startsWith(prefix))
               );
             const excluded = dependencyNames.some((name) =>
